@@ -10,12 +10,6 @@ locals {
     )]
   ]))
 
-  # Filter to only include repositories that actually exist
-  existing_referenced_repos = [
-    for repo in local.all_referenced_repos : repo
-    if contains(keys(var.github_repository_data), repo)
-  ]
-
   # Repositories that have security updates enabled.
   dependabot_security_updates_enabled_repositories = [
     for repo in var.github_dependabot_enabled_repositories : repo.name
