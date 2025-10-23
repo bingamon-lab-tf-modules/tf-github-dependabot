@@ -37,19 +37,19 @@ let
     # Terraform/OpenTofu
     packer
     terraform-docs
-    terraform-providers.aci
-    terraform-providers.artifactory
-    terraform-providers.bigip
+    terraform-providers.ciscodevnet_aci
+    terraform-providers.jfrog_artifactory
+    terraform-providers.f5networks_bigip
     terraform-providers.dns
     terraform-providers.github
-    terraform-providers.http
-    terraform-providers.kubectl
-    terraform-providers.libvirt
+    terraform-providers.hashicorp_http
+    terraform-providers.gavinbunney_kubectl
+    terraform-providers.dmacvicar_libvirt
     terraform-providers.local
-    terraform-providers.null
+    terraform-providers.hashicorp_null
     terraform-providers.nutanix
-    terraform-providers.random
-    terraform-providers.remote
+    terraform-providers.hashicorp_random
+    terraform-providers.hashicorp_http
     terraform-providers.secret
     terraform-providers.shell
     terraform-providers.sops
@@ -319,7 +319,7 @@ in
         fi
         echo "Initialising OpenTofu providers in ''${DIR}"
         pushd "''${DIR}"
-        tofu init -backend=false || {
+        tofu init -backend=false -upgrade || {
           echo "Failed to initialise OpenTofu providers in ''${DIR}"
           exit 1
         }
