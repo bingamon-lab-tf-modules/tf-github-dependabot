@@ -51,53 +51,9 @@ check "dependabot_secrets" {
   }
 }
 
-# Check and validate actions secrets value requirements
-# - Either plaintext_value or encrypted_value is required, but never both at the same time
-check "actions_secrets_value" {
-  assert {
-    condition = alltrue([
-      for idx, secret in var.github_dependabot_secrets :
-      # Must have exactly one of plaintext_value or encrypted_value (not both, not neither)
-      (
-        (can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != "") &&
-        (!(can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != ""))
-        ) || (
-        (can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != "") &&
-        (!(can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != ""))
-      )
-    ])
-    error_message = join("\n", [
-      for idx, secret in var.github_dependabot_secrets :
-      !(
-        (
-          (can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != "") &&
-          (!(can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != ""))
-          ) || (
-          (can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != "") &&
-          (!(can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != ""))
-        )
-      ) ?
-      format(
-        "Invalid actions secret '%s': %s",
-        can(secret.name) ? secret.name : format("(index %d)", idx),
-        (
-          (can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != "") &&
-          (can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != "")
-        ) ? "cannot have both plaintext_value and encrypted_value" : "must have either plaintext_value or encrypted_value"
-      )
-      : null
-      if !(
-        (
-          (can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != "") &&
-          (!(can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != ""))
-          ) || (
-          (can(secret.encrypted_value) && secret.encrypted_value != null && secret.encrypted_value != "") &&
-          (!(can(secret.plaintext_value) && secret.plaintext_value != null && secret.plaintext_value != ""))
-        )
-      )
-    ])
-  }
-}
+# NOTE: The "exactly one value field" rule lives in a validation block on
+# var.github_dependabot_secrets (see variables.tf). It must fail the plan rather
+# than warn, so it cannot be expressed as a check block here.
 
 # Check and validate actions secrets conditional fields
 # - If type is organization, organization is required
