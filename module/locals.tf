@@ -7,6 +7,11 @@ locals {
     # Repositories from repository field (dependabot secrets)
     [for secret in var.github_dependabot_secrets : (
       can(secret.repository) && secret.repository != null ? [secret.repository] : []
+    )],
+    # Repositories from allowed_repositories, which need resolving to numeric
+    # IDs for github_dependabot_organization_secret_repositories.
+    [for secret in var.github_dependabot_secrets : (
+      can(secret.allowed_repositories) && secret.allowed_repositories != null ? secret.allowed_repositories : []
     )]
   ]))
 
