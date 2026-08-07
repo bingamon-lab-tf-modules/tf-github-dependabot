@@ -9,7 +9,6 @@ resource "github_dependabot_organization_secret" "this" {
   value           = each.value.value
   value_encrypted = each.value.value_encrypted
   key_id          = each.value.key_id
-  encrypted_value = each.value.encrypted_value
 
   visibility = lookup(each.value, "visibility", "private")
 }
@@ -45,7 +44,6 @@ resource "github_dependabot_secret" "this" {
   value           = each.value.value
   value_encrypted = each.value.value_encrypted
   key_id          = each.value.key_id
-  encrypted_value = each.value.encrypted_value
 
   repository = each.value.repository
 
