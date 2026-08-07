@@ -14,7 +14,6 @@ resource "github_repository_dependabot_security_updates" "this" {
   repository = each.value.name
 
   depends_on = [
-    data.github_enterprise.this,
     data.github_organization.this,
     data.github_repository.this
   ]

@@ -4,8 +4,6 @@ module "test" {
   providers = {
     github = github.organization
   }
-
-  github_enterprise_slug   = "acme-corp"
   github_organization_name = "acme-engineering"
 
   github_repository_data = {

@@ -12,11 +12,6 @@ resource "github_dependabot_organization_secret" "this" {
   encrypted_value = each.value.encrypted_value
 
   visibility = lookup(each.value, "visibility", "private")
-
-  depends_on = [
-    data.github_enterprise.this
-  ]
-
 }
 
 # Repository allow list for organization secrets with "selected" visibility.
@@ -55,7 +50,6 @@ resource "github_dependabot_secret" "this" {
   repository = each.value.repository
 
   depends_on = [
-    data.github_enterprise.this,
     data.github_organization.this,
     data.github_repository.this
   ]
