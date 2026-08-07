@@ -40,9 +40,12 @@ variable "github_dependabot_secrets" {
     value_encrypted = optional(string, null)
     key_id          = optional(string, null)
 
-    # Deprecated aliases, still accepted for backwards compatibility.
+    # Deprecated aliases, still accepted for backwards compatibility. Both are
+    # normalised in locals.tf and neither is passed through to a resource - the
+    # deprecated provider arguments are no longer emitted at all.
     # `plaintext_value` is superseded by `value`.
-    # `encrypted_value` is superseded by `value_encrypted` + `key_id`.
+    # `encrypted_value` is superseded by `value_encrypted`; `key_id` is optional
+    # and resolved by the provider when omitted.
     encrypted_value = optional(string, null)
     plaintext_value = optional(string, null)
 

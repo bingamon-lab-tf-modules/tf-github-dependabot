@@ -30,11 +30,23 @@ locals {
 # request entirely, keeping them out of the ExactlyOneOf accounting.
 #
 # Precedence per secret:
-#   1. `value` or `plaintext_value` set  -> emit `value` only.
-#   2. else `key_id` plus an encrypted value -> emit `value_encrypted` + `key_id`.
-#   3. else an encrypted value           -> emit the deprecated `encrypted_value`,
-#      because `value_encrypted` carries RequiredWith: ["key_id"] and no `key_id`
-#      is available on the legacy input.
+#   1. `value` or `plaintext_value` set -> emit `value` only.
+#   2. else an encrypted value          -> emit `value_encrypted`, plus `key_id`
+#      when the caller supplied one.
+#
+# There is deliberately no third branch emitting the deprecated `encrypted_value`.
+# An earlier version had one, on the reading that `value_encrypted` carries
+# RequiredWith: ["key_id"]. The provider schema says the opposite - the constraint
+# sits on `key_id`:
+#
+#   "key_id": { Optional, Computed, RequiredWith: ["value_encrypted"],
+#               ConflictsWith: ["value", "plaintext_value"] }
+#
+# so `key_id` requires `value_encrypted`, not the reverse, and `key_id` is
+# additionally Computed. When it is empty the provider resolves the public key
+# itself (getDependabotOrganizationPublicKeyDetails /
+# getDependabotPublicKeyDetails) - the identical code path the deprecated
+# argument took. `value_encrypted` alone is therefore sufficient.
 #
 # var.github_dependabot_secrets is validated to carry exactly one value field, so
 # a secret can never fall through all three branches.
@@ -44,9 +56,10 @@ locals {
       # Branch 1: a plaintext value always wins.
       value = secret.value != null ? secret.value : secret.plaintext_value
 
-      # Branch 2: modern encrypted path, only usable alongside a key_id.
+      # Branch 2: encrypted path. key_id is optional - the provider resolves the
+      # public key itself when it is absent.
       value_encrypted = (
-        secret.value == null && secret.plaintext_value == null && secret.key_id != null
+        secret.value == null && secret.plaintext_value == null
         ? (secret.value_encrypted != null ? secret.value_encrypted : secret.encrypted_value)
         : null
       )
@@ -54,15 +67,8 @@ locals {
       # key_id is only meaningful with value_encrypted, and the provider declares
       # it ConflictsWith ["value", "plaintext_value"], so drop it otherwise.
       key_id = (
-        secret.value == null && secret.plaintext_value == null && secret.key_id != null
+        secret.value == null && secret.plaintext_value == null
         ? secret.key_id
-        : null
-      )
-
-      # Branch 3: deprecated encrypted path, retained until callers supply key_id.
-      encrypted_value = (
-        secret.value == null && secret.plaintext_value == null && secret.key_id == null
-        ? (secret.value_encrypted != null ? secret.value_encrypted : secret.encrypted_value)
         : null
       )
     })
